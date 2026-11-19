@@ -79,6 +79,50 @@ func LoadChart(ref, version string, settings *cli.EnvSettings) (*Chart, error) {
 }
 ```
 
+## Declaration order: read a file top-down
+
+A reader should meet the package's API before its plumbing. Within one file:
+
+1. **`const`, then `var`** (sentinel errors included), each in one parenthesised block, exported before unexported.
+2. **Types, each followed by its own code:**
+   - the `type` declaration
+   - the interfaces it consumes (consumer-owned, so they sit next to the struct that holds them)
+   - its constructor `NewX`
+   - its exported methods, then its unexported methods
+3. **Plain exported functions** not tied to a type.
+4. **Unexported helper functions** last.
+
+- **Group methods by receiver.** Never interleave methods of two types; a reader should find all of `*Service` in one place.
+- **Main type first.** In `order.go` put `Order` before the small types it uses (`Item`, `Status`).
+- **Call order within a group.** A method used by the one above it comes after it, so the file reads like a story.
+- **Struct fields:** exported before unexported, related fields together (e.g. `mu` directly above the fields it guards). Reorder for memory only when profiling says so (see `go-memory`).
+
+```go
+package orders
+
+const defaultCurrency = "EUR"
+
+var ErrNotFound = errors.New("order not found")
+
+type Service struct {
+	repo Repository
+}
+
+type Repository interface {
+	Find(ctx context.Context, id string) (Order, error)
+}
+
+func NewService(repo Repository) *Service { ... }
+
+func (s *Service) Get(ctx context.Context, id string) (Order, error) { ... }
+
+func (s *Service) applyDiscount(o *Order) { ... }
+
+func roundCents(v int64) int64 { ... }
+```
+
+Example: `references/a6-a7-project-layout/orders/service.go`
+
 ## Context comes first
 
 Any function that does I/O or waits (database, HTTP, channels) takes `ctx context.Context` as its first parameter and returns when it is done. Pass it down; never store it in a struct. Concurrency details are in the `go-concurrency` skill.
@@ -117,6 +161,7 @@ File names are examples; the split is what matters. Full working example: `refer
 When reviewing Go code, flag:
 - stuttering names, `Impl`/`Base`/`Default` suffixes, layer-named packages
 - function bodies with no blank lines between logical steps, or a blank line between a call and its error check
+- declarations out of order: methods of one type scattered or interleaved, helpers above the API, constructor away from its type
 - functions doing I/O or waiting without `ctx context.Context` as the first parameter
 - getters/setters with no logic, whole structs passed for one field, god objects
 - interfaces declared by the producer, single-implementation interfaces, interface + struct in one file
