@@ -1,5 +1,10 @@
 # claude-go-developer
 
+[![Go](https://img.shields.io/badge/Go-1.25%2B-00ADD8?logo=go&logoColor=white)](https://go.dev)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-subagent_%2B_skills-D97757?logo=claude&logoColor=white)](https://claude.com/claude-code)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/semirm-dev/claude-go-developer)](https://github.com/semirm-dev/claude-go-developer/commits/main)
+
 A Claude Code subagent (`go-developer`) and the Go skills it uses. They cover my Go guidelines plus playbooks for concurrency, memory, Gin servers, SPA auth, gRPC and Kubernetes operators.
 
 ```
@@ -62,3 +67,7 @@ Start a new Claude Code session, then:
 
 - The gRPC (`go-grpc`) and Kubernetes (`go-k8s-operators`) references need generated code before they compile: run `buf generate` in `f1-protobuf-and-buf/`, and `controller-gen object paths=./...` for the operator examples.
 - The other references pass `go vet` and `go test -race`.
+
+## License
+
+[MIT](LICENSE)
