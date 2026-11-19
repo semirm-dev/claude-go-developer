@@ -53,6 +53,32 @@ Otherwise one failure gets logged three times in three layers and the logs lie a
 
 Example: `references/a4-error-handling/main.go`
 
+## Formatting: blank lines between logical steps
+
+gofmt doesn't decide where blank lines go, so write function bodies as short paragraphs. One blank line goes between logical steps. A wall of statements is hard to scan.
+
+- **Keep together:** a call and its `if err != nil` check; the assignments that configure one value; a statement that only prepares the next block (e.g. `sort` right before the loop over the sorted slice).
+- **Separate with a blank line:** each step that does a different job (defaults, setup, each call with its check, each loop or `if` block); also before the final `return` once the function has more than one step.
+- **Leave short functions compact.** A single call, its check and the return need no blank lines.
+
+```go
+func LoadChart(ref, version string, settings *cli.EnvSettings) (*Chart, error) {
+	opts := action.ChartPathOptions{Version: version}
+
+	path, err := opts.LocateChart(ref, settings)
+	if err != nil {
+		return nil, fmt.Errorf("locate chart: %w", err)
+	}
+
+	c, err := loader.Load(path)
+	if err != nil {
+		return nil, fmt.Errorf("load chart: %w", err)
+	}
+
+	return &Chart{chart: c}, nil
+}
+```
+
 ## Context comes first
 
 Any function that does I/O or waits (database, HTTP, channels) takes `ctx context.Context` as its first parameter and returns when it is done. Pass it down; never store it in a struct. Concurrency details are in the `go-concurrency` skill.
@@ -90,6 +116,7 @@ File names are examples; the split is what matters. Full working example: `refer
 
 When reviewing Go code, flag:
 - stuttering names, `Impl`/`Base`/`Default` suffixes, layer-named packages
+- function bodies with no blank lines between logical steps, or a blank line between a call and its error check
 - functions doing I/O or waiting without `ctx context.Context` as the first parameter
 - getters/setters with no logic, whole structs passed for one field, god objects
 - interfaces declared by the producer, single-implementation interfaces, interface + struct in one file
