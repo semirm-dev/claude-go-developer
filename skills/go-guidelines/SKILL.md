@@ -156,6 +156,14 @@ Add files only when the code actually needs them:
 
 File names are examples; the split is what matters. Full working example: `references/a6-a7-project-layout/` (start at `cmd/main.go`, then `orders/service.go`).
 
+## Tests: external test package
+
+Test files declare `package orders_test`, not `package orders`. The test imports the package and uses only its exported API, exactly as a caller would, so tests break on behaviour changes, not refactors.
+
+- If something seems to need an unexported test, test it through the exported function that uses it. If that's impossible, the code probably belongs in its own package.
+- **Internal tests only when you really need them:** an internal test (`package orders`, no `_test`) is allowed only in special cases where internals must be tested directly and the exported API can't reach them. Put those tests in a separate file (e.g. `internal_test.go`) and keep everything else external.
+- `package main` can't be imported, so its tests stay in `package main`. Keep `main` thin so there is little to test there.
+
 ## Review checklist
 
 When reviewing Go code, flag:
@@ -168,3 +176,4 @@ When reviewing Go code, flag:
 - errors both logged and returned, capitalised or punctuated error messages, `%v` where `%w` was meant
 - a new dependency the stdlib already covers
 - features importing each other directly
+- test files not in an external `_test` package, unless they're `package main` or really need to test internals
