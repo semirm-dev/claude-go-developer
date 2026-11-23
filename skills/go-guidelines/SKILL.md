@@ -84,6 +84,7 @@ func LoadChart(ref, version string, settings *cli.EnvSettings) (*Chart, error) {
 A reader should meet the package's API before its plumbing. Within one file:
 
 1. **`const`, then `var`** (sentinel errors included), each in one parenthesised block, exported before unexported.
+   - **`init`**, if any, directly after them: it runs right after they are initialized and nothing calls it.
 2. **Types, each followed by its own code:**
    - the `type` declaration
    - the interfaces it consumes (consumer-owned, so they sit next to the struct that holds them)
